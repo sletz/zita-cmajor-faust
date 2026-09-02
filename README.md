@@ -4,15 +4,17 @@ A like-for-like CPU comparison of the same reverb algorithm compiled by two
 different DSP compilers.
 
 The reference is the [ZitaReverb example patch][upstream] from `cmajor-lang/cmajor`
-(itself a rewrite of Fons Adriaensen's zita-rev1): a graph of five processors —
-predelay, an 8-branch FDN core (allpass + delay + RT60 shelving filter per branch,
-8x8 Hadamard mixing in 12 butterflies), dry/wet mixer, two parametric EQs.
+— [documented on cmajor.dev][docs], itself a rewrite of Fons Adriaensen's
+zita-rev1 — a graph of five processors: predelay, an 8-branch FDN core (allpass +
+delay + RT60 shelving filter per branch, 8x8 Hadamard mixing in 12 butterflies),
+dry/wet mixer, two parametric EQs.
 
 `ZitaReverbCmaj.dsp` is a line-by-line Faust port of that patch: same topology,
 same coefficients, same delay-line sizes. `ZitaReverbCmaj48.dsp` is the same file
 with the sample rate fixed at compile time.
 
 [upstream]: https://github.com/cmajor-lang/cmajor/tree/main/examples/patches/ZitaReverb
+[docs]: https://cmajor.dev/docs/Examples/ZitaReverb/
 
 ## Fidelity
 
@@ -127,7 +129,7 @@ https://sletz.github.io/zita-cmajor-faust/
 
 ## Licence
 
-GPL-3.0 (`LICENSE`). The Faust port is a derived work of the Cmajor ZitaReverb
-example, which is offered under either GPLv3 or a commercial licence; the
+GPL-3.0 (`LICENSE`). The Faust port is a derived work of the [Cmajor ZitaReverb
+example][docs], which is offered under either GPLv3 or a commercial licence; the
 original algorithm is Fons Adriaensen's zita-rev1. The Cmajor sources themselves
 are not vendored here — the Makefile downloads them.
