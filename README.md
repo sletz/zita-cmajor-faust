@@ -122,7 +122,8 @@ make clean
 The Cmajor sources are downloaded by the Makefile rather than vendored here: they
 are dual GPLv3 / commercial licensed.
 
-`rapport.html` is a standalone write-up of the same material (in French).
+`index.html` is a standalone write-up of the same material, published at
+https://sletz.github.io/zita-cmajor-faust/
 
 ## Licence
 
