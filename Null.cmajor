@@ -1,0 +1,6 @@
+processor NullFX [[ main ]]
+{
+    input stream float<2> in;
+    output stream float<2> out;
+    void main() { loop { out <- in; advance(); } }
+}

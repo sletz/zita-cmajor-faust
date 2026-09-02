@@ -1,0 +1,352 @@
+<meta charset="utf-8">
+<title>Zita Reverb, Cmajor versus Faust</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chivo:wght@400;700;900&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&family=JetBrains+Mono:wght@400;700&display=swap">
+<style>
+:root{
+  --paper:#eef1f1; --surface:#f7f9f8; --ink:#12181a; --ink-soft:#4a5a5c;
+  --rule:#c9d3d2; --rule-soft:#dde4e3;
+  --faust:#0f6d6a; --faust-soft:#1a8f8b; --cmajor:#a85a17; --cmajor-soft:#c47b2e;
+  --flag:#7a1f3d;
+  --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  --disp:"Chivo","Helvetica Neue",Arial,sans-serif;
+  --body:"Source Serif 4",Georgia,"Times New Roman",serif;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --paper:#0d1214; --surface:#141c1e; --ink:#e6ecea; --ink-soft:#93a5a5;
+    --rule:#263435; --rule-soft:#1c2729;
+    --faust:#4ec2ba; --faust-soft:#2f9c95; --cmajor:#e0994f; --cmajor-soft:#b8752f;
+    --flag:#e08aa5;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0d1214; --surface:#141c1e; --ink:#e6ecea; --ink-soft:#93a5a5;
+  --rule:#263435; --rule-soft:#1c2729;
+  --faust:#4ec2ba; --faust-soft:#2f9c95; --cmajor:#e0994f; --cmajor-soft:#b8752f;
+  --flag:#e08aa5;
+}
+*{box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);font-family:var(--body);
+     font-size:17px;line-height:1.62;-webkit-font-smoothing:antialiased}
+.wrap{max-width:920px;margin:0 auto;padding:0 28px 96px}
+.col{max-width:64ch}
+h1,h2,h3{font-family:var(--disp);text-wrap:balance;margin:0}
+h1{font-weight:900;font-size:clamp(2.1rem,5.4vw,3.2rem);line-height:1.04;letter-spacing:-.022em}
+h2{font-weight:700;font-size:1.42rem;letter-spacing:-.012em}
+h3{font-weight:700;font-size:1.02rem;letter-spacing:-.005em}
+p{margin:0}
+a{color:var(--faust)}
+.eyebrow{font-family:var(--mono);font-size:.685rem;letter-spacing:.16em;
+         text-transform:uppercase;color:var(--ink-soft)}
+
+header{padding:72px 0 44px;display:flex;flex-direction:column;gap:22px}
+.lede{font-size:1.16rem;color:var(--ink-soft);max-width:56ch}
+.headline{display:flex;flex-wrap:wrap;gap:14px 40px;align-items:baseline;
+          border-top:2px solid var(--ink);padding-top:20px;margin-top:8px}
+.big{font-family:var(--disp);font-weight:900;font-size:3.1rem;line-height:.95;
+     letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.big small{display:block;font-family:var(--mono);font-size:.7rem;font-weight:400;
+           letter-spacing:.13em;text-transform:uppercase;color:var(--ink-soft);
+           margin-top:10px;line-height:1.5;max-width:22ch}
+
+section{padding-top:52px;display:flex;flex-direction:column;gap:20px}
+section>hr{border:0;border-top:1px solid var(--rule);margin:0 0 4px}
+.head{display:flex;flex-direction:column;gap:7px}
+
+.steps{display:grid;gap:1px;background:var(--rule-soft);border:1px solid var(--rule-soft);
+       grid-template-columns:repeat(auto-fit,minmax(196px,1fr))}
+.step{background:var(--surface);padding:18px 18px 20px;display:flex;flex-direction:column;gap:8px}
+.step .n{font-family:var(--mono);font-size:.7rem;color:var(--faust);letter-spacing:.12em}
+.step p{font-size:.93rem;color:var(--ink-soft);line-height:1.5}
+
+figure{margin:0;display:flex;flex-direction:column;gap:12px}
+figcaption{font-family:var(--mono);font-size:.72rem;color:var(--ink-soft);line-height:1.6}
+.scroller{overflow-x:auto}
+
+.chart{display:flex;flex-direction:column;gap:3px;font-family:var(--mono);min-width:520px}
+.row{display:grid;grid-template-columns:230px 1fr 74px;align-items:center;gap:14px;
+     padding:5px 0;font-size:.775rem}
+.row .lbl{color:var(--ink);text-align:right;line-height:1.35}
+.row .lbl em{font-style:normal;color:var(--ink-soft)}
+.track{height:19px;background:var(--rule-soft);position:relative}
+.bar{height:100%;display:block}
+.bar.f{background:var(--faust)}
+.bar.c{background:var(--cmajor)}
+.bar.j{background:var(--faust);opacity:.5}
+.bar.cj{background:var(--cmajor);opacity:.5}
+.val{font-variant-numeric:tabular-nums;font-size:.8rem;text-align:right}
+.legend{display:flex;gap:20px;flex-wrap:wrap;font-family:var(--mono);font-size:.72rem;
+        color:var(--ink-soft);align-items:center}
+.swatch{display:inline-block;width:11px;height:11px;margin-right:7px;vertical-align:-1px}
+
+table{border-collapse:collapse;width:100%;min-width:560px;font-size:.86rem}
+th,td{text-align:right;padding:9px 12px;border-bottom:1px solid var(--rule-soft)}
+th:first-child,td:first-child{text-align:left}
+thead th{font-family:var(--mono);font-size:.68rem;letter-spacing:.09em;text-transform:uppercase;
+         color:var(--ink-soft);border-bottom:1px solid var(--rule);font-weight:400}
+tbody td{font-family:var(--mono);font-variant-numeric:tabular-nums}
+tbody td:first-child{font-family:var(--body);font-variant-numeric:normal}
+tr.hl td{background:var(--surface)}
+.tag{font-family:var(--mono);font-size:.66rem;padding:1px 6px;border:1px solid currentColor;
+     letter-spacing:.06em}
+.tag.f{color:var(--faust)} .tag.c{color:var(--cmajor)}
+
+pre{background:var(--surface);border-left:2px solid var(--faust);margin:0;
+    padding:16px 18px;overflow-x:auto;font-family:var(--mono);font-size:.78rem;line-height:1.65}
+code{font-family:var(--mono);font-size:.86em;background:var(--surface);padding:1px 4px}
+pre code{background:none;padding:0;font-size:1em}
+
+ul{margin:0;padding-left:1.1em;display:flex;flex-direction:column;gap:10px}
+li::marker{color:var(--faust)}
+.note{border-left:2px solid var(--flag);padding:2px 0 2px 18px;color:var(--ink-soft);font-size:.95rem}
+.grid2{display:grid;gap:26px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
+footer{margin-top:64px;padding-top:22px;border-top:1px solid var(--rule);
+       font-family:var(--mono);font-size:.72rem;color:var(--ink-soft);line-height:1.8}
+</style>
+
+<div class="wrap">
+<header>
+  <span class="eyebrow">Port &amp; measurement &mdash; 2 September 2026</span>
+  <h1>Zita Reverb,<br>Cmajor versus Faust</h1>
+  <p class="lede">Cmajor's <em>ZitaReverb</em> example, generated to C++, rewritten line by line
+     in Faust, then both measured side by side inside one binary on an Apple M5 &mdash;
+     with the Faust compilation options elected by <code>fcautotool</code>.</p>
+  <div class="headline">
+    <div class="big">3.27&times;<small>Faust &rarr; C++ against Cmajor &rarr; C++, once the options are elected</small></div>
+    <div class="big">-135 dB<small>gap between the two impulse responses</small></div>
+    <div class="big">0.055 %<small>of one core at 48 kHz for the Faust build</small></div>
+  </div>
+</header>
+
+<section>
+  <hr><div class="head"><span class="eyebrow">Approach</span><h2>Four steps</h2></div>
+  <div class="steps">
+    <div class="step"><span class="n">01</span><h3>Read the patch</h3>
+      <p>The Cmajor source is a graph of five processors: an 8-branch FDN in the manner of Fons Adriaensen's zita-rev1.</p></div>
+    <div class="step"><span class="n">02</span><h3>Generate C++</h3>
+      <p><code>cmaj generate --target=cpp</code> emits a self-contained class of 2,147 lines.</p></div>
+    <div class="step"><span class="n">03</span><h3>Port to Faust</h3>
+      <p>150 lines of Faust with the same topology, the same coefficients and the same delay-line sizes.</p></div>
+    <div class="step"><span class="n">04</span><h3>Measure</h3>
+      <p>The engines take turns inside a single binary, on performance cores, minimum over 11 rounds.</p></div>
+  </div>
+</section>
+
+<section>
+  <hr><div class="head"><span class="eyebrow">Algorithm</span><h2>What is in the box</h2></div>
+  <figure>
+  <div class="scroller">
+  <svg viewBox="0 0 900 210" width="900" style="max-width:100%;height:auto" role="img"
+       aria-label="Signal chain: stereo input, predelay, 8-branch FDN core, dry/wet mixer, two equalisers, output">
+    <defs>
+      <marker id="ar" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto">
+        <path d="M0 0 L8 4 L0 8 z" fill="currentColor"/>
+      </marker>
+      <style>
+        .bx{fill:var(--surface);stroke:var(--rule);stroke-width:1.5}
+        .bxf{fill:none;stroke:var(--faust);stroke-width:1.5}
+        .t{font-family:var(--disp);font-size:13px;font-weight:700;fill:var(--ink)}
+        .s{font-family:var(--mono);font-size:9.5px;fill:var(--ink-soft)}
+        .ln{stroke:var(--ink-soft);stroke-width:1.4;fill:none;color:var(--ink-soft)}
+      </style>
+    </defs>
+    <text class="s" x="4" y="76">in L/R</text>
+    <path class="ln" d="M46 88 H86" marker-end="url(#ar)"/>
+    <rect class="bx" x="90" y="66" width="98" height="44"/>
+    <text class="t" x="139" y="87" text-anchor="middle">Predelay</text>
+    <text class="s" x="139" y="101" text-anchor="middle">40 ms - 20 ms</text>
+    <path class="ln" d="M188 88 H228" marker-end="url(#ar)"/>
+
+    <rect class="bxf" x="232" y="20" width="256" height="136"/>
+    <text class="s" x="360" y="14" text-anchor="middle" fill="var(--faust)">FDN CORE &mdash; 8 BRANCHES</text>
+    <rect class="bx" x="246" y="38" width="72" height="34"/>
+    <text class="t" x="282" y="59" text-anchor="middle" font-size="11">Allpass</text>
+    <rect class="bx" x="246" y="104" width="72" height="34"/>
+    <text class="t" x="282" y="125" text-anchor="middle" font-size="11">Delay</text>
+    <rect class="bx" x="336" y="38" width="66" height="34"/>
+    <text class="t" x="369" y="59" text-anchor="middle" font-size="11">Hadamard</text>
+    <rect class="bx" x="336" y="104" width="66" height="34"/>
+    <text class="t" x="369" y="125" text-anchor="middle" font-size="11">RT60 filter</text>
+    <path class="ln" d="M318 55 H332" marker-end="url(#ar)"/>
+    <path class="ln" d="M402 55 H432 V121 H406" marker-end="url(#ar)"/>
+    <path class="ln" d="M336 121 H322" marker-end="url(#ar)"/>
+    <path class="ln" d="M246 121 H222 V55 H242" marker-end="url(#ar)"/>
+    <text class="s" x="440" y="52">&times;8</text>
+
+    <path class="ln" d="M488 88 H528" marker-end="url(#ar)"/>
+    <rect class="bx" x="532" y="66" width="96" height="44"/>
+    <text class="t" x="580" y="87" text-anchor="middle">Dry / wet</text>
+    <text class="s" x="580" y="101" text-anchor="middle">50 %</text>
+    <path class="ln" d="M139 66 V40 H580 V62" marker-end="url(#ar)"/>
+    <text class="s" x="512" y="36">dry path</text>
+    <path class="ln" d="M628 88 H668" marker-end="url(#ar)"/>
+    <rect class="bx" x="672" y="66" width="70" height="44"/>
+    <text class="t" x="707" y="87" text-anchor="middle" font-size="12">EQ 1</text>
+    <text class="s" x="707" y="101" text-anchor="middle">400 Hz</text>
+    <path class="ln" d="M742 88 H762" marker-end="url(#ar)"/>
+    <rect class="bx" x="766" y="66" width="70" height="44"/>
+    <text class="t" x="801" y="87" text-anchor="middle" font-size="12">EQ 2</text>
+    <text class="s" x="801" y="101" text-anchor="middle">4 kHz</text>
+    <path class="ln" d="M836 88 H866" marker-end="url(#ar)"/>
+    <text class="s" x="856" y="76">out</text>
+    <text class="s" x="232" y="180">16 delay lines of 16,384 samples &middot; 8 double one-pole filters &middot; &plusmn;1 matrix, 12 butterflies</text>
+  </svg>
+  </div>
+  <figcaption>The Cmajor graph. The Faust port reproduces this structure exactly, down to the
+  predelay's -20 ms offset and the buffer sizes.</figcaption>
+  </figure>
+</section>
+
+<section>
+  <hr><div class="head"><span class="eyebrow">Fidelity</span><h2>The port is the same filter</h2></div>
+  <div class="col"><p>A 96,000-frame stereo impulse response at the default settings, compared
+  sample by sample. From frame 32 onwards the relative error between the two outputs is
+  1.8 &times; 10<sup>-7</sup>, that is -135 dB: <code>float</code> rounding, nothing else.</p></div>
+  <pre><code>cmaj  first non-zero points : 0.0234375   0.14255272   0.14255272 ...
+faust first non-zero points : 0.75        0.14255273   0.14255273 ...
+                              ^ the 32-sample ramp is not ported</code></pre>
+  <p class="note">Only the very first sample differs: Cmajor interpolates its dry/wet levels over one
+  32-frame block on the first parameter change. The Faust port applies the value directly. In steady
+  state the two signals are the same.</p>
+</section>
+
+<section>
+  <hr><div class="head"><span class="eyebrow">Results</span><h2>Cost per sample</h2></div>
+  <figure>
+  <div class="scroller">
+  <div class="chart">
+    <div class="row"><span class="lbl">Cmajor &rarr; C++<br><em>power-of-two predelay</em></span>
+      <span class="track"><span class="bar c" style="width:94.8%"></span></span><span class="val">37.92</span></div>
+    <div class="row"><span class="lbl">Cmajor &rarr; C++<br><em>cmaj generate --target=cpp</em></span>
+      <span class="track"><span class="bar c" style="width:93.6%"></span></span><span class="val">37.44</span></div>
+    <div class="row"><span class="lbl">Faust &rarr; C++<br><em>-lang cpp -vec -lv 0 -vs 32</em></span>
+      <span class="track"><span class="bar f" style="width:63.4%"></span></span><span class="val">25.34</span></div>
+    <div class="row"><span class="lbl">Faust &rarr; C++<br><em>-lang cpp, default settings</em></span>
+      <span class="track"><span class="bar f" style="width:59.5%"></span></span><span class="val">23.79</span></div>
+    <div class="row"><span class="lbl">Cmajor &rarr; LLVM JIT<br><em>native engine, -O4</em></span>
+      <span class="track"><span class="bar cj" style="width:56.3%"></span></span><span class="val">~22.5</span></div>
+    <div class="row"><span class="lbl">Faust &rarr; LLVM JIT<br><em>libfaust</em></span>
+      <span class="track"><span class="bar j" style="width:52.7%"></span></span><span class="val">21.08</span></div>
+    <div class="row"><span class="lbl">Faust &rarr; C++<br><em>-lang cpp, rate fixed at 48 kHz</em></span>
+      <span class="track"><span class="bar f" style="width:52.6%"></span></span><span class="val">21.02</span></div>
+    <div class="row"><span class="lbl">Faust &rarr; C++<br><em>-lang ocpp -lsum &nbsp;&middot; elected</em></span>
+      <span class="track"><span class="bar f" style="width:28.6%"></span></span><span class="val">11.43</span></div>
+  </div>
+  </div>
+  <div class="legend">
+    <span><span class="swatch" style="background:var(--cmajor)"></span>Cmajor</span>
+    <span><span class="swatch" style="background:var(--faust)"></span>Faust</span>
+    <span><span class="swatch" style="background:var(--faust);opacity:.5"></span>just-in-time</span>
+    <span>nanoseconds per stereo frame &mdash; shorter is better</span>
+  </div>
+  </figure>
+
+  <div class="scroller">
+  <table>
+    <thead><tr><th>Implementation</th><th>ns / frame</th><th>% of one core</th><th>&times; realtime</th><th>Ratio</th></tr></thead>
+    <tbody>
+      <tr><td><span class="tag c">Cmajor</span> C++, power-of-two predelay</td><td>37.92</td><td>0.182</td><td>549</td><td>0.99</td></tr>
+      <tr><td><span class="tag c">Cmajor</span> generated C++</td><td>37.44</td><td>0.180</td><td>556</td><td>1.00</td></tr>
+      <tr><td><span class="tag f">Faust</span> <code>-lang cpp -vec</code></td><td>25.34</td><td>0.122</td><td>822</td><td>1.48</td></tr>
+      <tr><td><span class="tag f">Faust</span> <code>-lang cpp</code></td><td>23.79</td><td>0.114</td><td>876</td><td>1.57</td></tr>
+      <tr><td><span class="tag c">Cmajor</span> native LLVM JIT</td><td>~ 22.5</td><td>~ 0.108</td><td>~ 925</td><td>~ 1.66</td></tr>
+      <tr><td><span class="tag f">Faust</span> LLVM JIT</td><td>21.08</td><td>0.101</td><td>974</td><td>1.78</td></tr>
+      <tr><td><span class="tag f">Faust</span> <code>-lang cpp</code>, fixed rate</td><td>21.02</td><td>0.101</td><td>991</td><td>1.78</td></tr>
+      <tr class="hl"><td><span class="tag f">Faust</span> <code>-lang ocpp -lsum</code></td><td>11.43</td><td>0.055</td><td>1822</td><td>3.27</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <figcaption>Block of 512 frames, 48 kHz, EQ gains at +6 / -6 dB so that both engines actually run
+  the whole chain. The Cmajor JIT figure comes from a different protocol (the slope of
+  <code>cmaj render</code>) and is worth about &plusmn;10 %.</figcaption>
+
+  <div class="col"><p>At the settings shipped with the patch (EQ gains at 0 dB), Cmajor
+  short-circuits both equaliser sections and drops to 33.8 ns; Faust, which always computes them,
+  does not move. The ratios become 1.42&times; for <code>-lang cpp</code> and 2.99&times; for the
+  elected build. Block size changes nothing, from 32 to 1,024 frames.</p></div>
+</section>
+
+<section>
+  <hr><div class="head"><span class="eyebrow">Election</span><h2>The options decide it</h2></div>
+  <div class="col"><p><code>fcautotool</code> races the supported option sets against each other,
+  then checks that the winner really reproduces the reference build's impulse response. On this DSP
+  it elects <code>-lang ocpp -lsum</code> &mdash; the older C++ backend plus the recovery of the
+  polynomial form of large sums.</p></div>
+  <pre><code>  lb        10.1730 ns  (-lang ocpp -lsum)          &lt;-- elected
+  fibfu     11.3210 ns  (-lang ocpp -fir -iirt -lsum -ls-fuse -ls-sched model)
+  al        14.0150 ns  (-lang ocpp -ss 8)
+  ...
+  cppmcd0   19.4140 ns  (-lang cpp -mcd 0)
+  cppvec    21.1010 ns  (-lang cpp -vec)
+  cpp       23.2110 ns  (-lang cpp)</code></pre>
+  <div class="col"><p>In the A/B harness the two steps are worth: <strong>23.8 ns</strong> for
+  <code>-lang cpp</code> &rarr; <strong>16.4 ns</strong> for <code>-lang ocpp</code> alone &rarr;
+  <strong>11.4 ns</strong> with <code>-lsum</code>. Picking the backend weighs more here than
+  everything else in the comparison put together.</p></div>
+  <p class="note"><code>-lsum</code> is marked experimental in <code>faust -h</code>, so its output
+  was re-checked against the Cmajor reference: -135.1 dB with the equalisers neutral, -86.3 dB with
+  them active &mdash; exactly the figures of the default backend.</p>
+</section>
+
+<section>
+  <hr><div class="head"><span class="eyebrow">Analysis</span><h2>Where the gap comes from</h2></div>
+  <div class="grid2">
+    <div class="col"><h3 style="margin-bottom:10px">Cmajor's C++ backend unrolls the graph one frame at a time</h3>
+    <p style="font-size:.95rem;color:var(--ink-soft)">The generated <code>advance()</code> calls, for
+    every frame, a <code>main()</code> that zeroes five intermediate IO structs, accumulates them
+    between nodes, then enters each processor through a <code>switch (_resumeIndex)</code> &mdash;
+    the translation of the language's <code>loop / advance()</code> coroutines. The C++ compiler
+    cannot fuse that into a single loop.</p></div>
+    <div class="col"><h3 style="margin-bottom:10px">Faust emits one fused loop</h3>
+    <p style="font-size:.95rem;color:var(--ink-soft)">The whole graph collapses into a single loop
+    body over flat state arrays, with the slider-dependent coefficients hoisted out of it. It is
+    structurally the code one would write by hand.</p></div>
+  </div>
+  <p class="note">This is not a verdict on the Cmajor language. Its native LLVM engine runs at about
+  22.5 ns/frame, level with Faust's <code>-lang cpp</code>. The gap measured here belongs to the
+  <em>C++ code generator</em>, not to the Cmajor compiler &mdash; and on the Faust side too it is the
+  choice of generator that decides, as the election above shows.</p>
+  <div class="col"><p>Checked in passing: the patch's predelay buffer is 19,200 words, which is not
+  a power of two, so every sample pays two integer modulos. Forcing 32,768 buys 1.3 ns &mdash; only
+  3.6 %. The bulk of the gap really is structural.</p></div>
+</section>
+
+<section>
+  <hr><div class="head"><span class="eyebrow">Caveats</span><h2>What the port does not reproduce</h2></div>
+  <ul>
+    <li>The per-block parameter ramps (dry/wet levels, reverb level): Cmajor interpolates over 32
+    frames after every change, the Faust port jumps straight to the value.</li>
+    <li>The equaliser's state machine: Cmajor switches between <em>bypass</em>, <em>static</em> and
+    <em>smooth</em>, and computes nothing at all when the gain is 0 dB. Faust always computes the section.</li>
+    <li>Faust recomputes the eight filters' <code>pow</code> and <code>sqrt</code> on every
+    <code>compute()</code> call; Cmajor only when a parameter moved. Invisible here &mdash; the cost
+    measured the same from 32 to 1,024 frames per block.</li>
+    <li>Both versions are limited by the fixed line size of 16,384: above roughly 64 kHz, the longest
+    delay of the original Cmajor patch no longer fits in its buffer.</li>
+  </ul>
+  <div class="col"><p>The first three are control-rate matters: they change nothing in steady state,
+  which the -135 dB confirms, but they do change what happens while a knob is moving.</p></div>
+</section>
+
+<section>
+  <hr><div class="head"><span class="eyebrow">Method</span><h2>How this is measured</h2></div>
+  <div class="col"><p>One binary holds every implementation. A round processes 10 seconds of identical
+  noise per engine, the engines alternating <em>inside</em> the round so that thermal drift and
+  frequency scaling hit all of them equally; the minimum over 11 rounds is kept, the first round
+  being warm-up. The thread runs at <code>QOS_CLASS_USER_INTERACTIVE</code> to stay on the
+  performance cores.</p></div>
+  <pre><code>Apple M5 &middot; Darwin 25.6.0 &middot; Apple clang 21.0.0
+clang++ -std=c++17 -O3 -mcpu=apple-m4        (identical on both sides)
+  (with -ffast-math throughout: 35.1 / 23.6 / 11.0 - the ratios do not move)
+Cmajor 1.0.3177   &middot;   Faust 2.87.11
+48 kHz &middot; block of 512 &middot; single-precision float</code></pre>
+  <div class="col"><p>State footprint: 1.21 MB for Cmajor, 1.39 MB for the generic Faust port,
+  0.45 MB for the fixed-rate variant &mdash; Faust then sizes its tables on the delays actually
+  requested instead of the declared maximum.</p></div>
+</section>
+
+<footer>
+  Cmajor source: cmajor-lang/cmajor, examples/patches/ZitaReverb &mdash; a recreation of Fons Adriaensen's zita-rev1.<br>
+  Faust port, measurement harness and reproducible Makefile: <span style="color:var(--faust)">benchmark/zita-cmajor/</span> in the Faust repository.
+</footer>
+</div>

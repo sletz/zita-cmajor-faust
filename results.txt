@@ -1,0 +1,16 @@
+
+--- block = 512 frames, SR = 48 kHz, EQ gains = +6.0 / -6.0 dB, 12 rounds of 10 s ---
+Cmajor -> C++  (cmaj generate)         37.44 ns/frame   0.180 % CPU     556 x RT   ref 1.00x
+Cmajor -> C++  (predelai en 2^n)       37.92 ns/frame   0.182 % CPU     549 x RT   0.99x
+Faust  -> C++  (scalar)                23.79 ns/frame   0.114 % CPU     876 x RT   1.57x
+Faust  -> C++  (-vec -lv 0 -vs 32)     25.34 ns/frame   0.122 % CPU     822 x RT   1.48x
+Faust  -> C++  (scalar, SR fixe 48k)   21.02 ns/frame   0.101 % CPU     991 x RT   1.78x
+Faust  -> C++  (-lang ocpp, elu)       11.43 ns/frame   0.055 % CPU    1822 x RT   3.27x
+
+--- block = 512 frames, SR = 48 kHz, EQ gains = +0.0 / +0.0 dB, 12 rounds of 10 s ---
+Cmajor -> C++  (cmaj generate)         33.79 ns/frame   0.162 % CPU     616 x RT   ref 1.00x
+Cmajor -> C++  (predelai en 2^n)       33.56 ns/frame   0.161 % CPU     621 x RT   1.01x
+Faust  -> C++  (scalar)                23.84 ns/frame   0.114 % CPU     874 x RT   1.42x
+Faust  -> C++  (-vec -lv 0 -vs 32)     25.42 ns/frame   0.122 % CPU     819 x RT   1.33x
+Faust  -> C++  (scalar, SR fixe 48k)   21.17 ns/frame   0.102 % CPU     984 x RT   1.60x
+Faust  -> C++  (-lang ocpp, elu)       11.28 ns/frame   0.054 % CPU    1846 x RT   2.99x

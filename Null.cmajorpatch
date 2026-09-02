@@ -1,0 +1,3 @@
+{ "CmajorVersion": 1, "ID": "dev.test.null", "version": "1.0", "name": "Null",
+  "description": "passthrough", "category": "generator", "manufacturer": "test",
+  "isInstrument": false, "source": "Null.cmajor" }
