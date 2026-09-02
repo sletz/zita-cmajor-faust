@@ -19,6 +19,8 @@ namespace p2 {
 #undef FAUSTCLASS
 #include "v_48.h"
 #undef FAUSTCLASS
+#include "v_mcd0.h"
+#undef FAUSTCLASS
 #include "v_ocpp.h"
 
 struct ZoneUI : public UI
@@ -87,7 +89,8 @@ int main (int argc, char** argv)
     static zitaFaustScal fscal; static ZoneUI ui1; setupFaust (fscal, ui1);
     static zitaFaustVec  fvec;  static ZoneUI ui2; setupFaust (fvec,  ui2);
     static zitaFaust48   f48;   static ZoneUI ui3; setupFaust (f48,   ui3);
-    static zitaOcpp      focpp; static ZoneUI ui4; setupFaust (focpp, ui4);
+    static zitaFaustMcd0 fmcd0; static ZoneUI ui4; setupFaust (fmcd0, ui4);
+    static zitaOcpp      focpp; static ZoneUI ui5; setupFaust (focpp, ui5);
 
     struct Engine { const char* name; std::function<double(size_t)> run; double best; };
     std::vector<Engine> engines;
@@ -129,6 +132,14 @@ int main (int argc, char** argv)
         float* in[2]  = { nL.data() + i, nR.data() + i };
         float* out[2] = { oL.data(), oR.data() };
         f48.compute (block, in, out);
+        return (double) (oL[0] + oR[block - 1]);
+    }, 1e30 });
+
+    engines.push_back ({ "Faust  -> C++  (-lang cpp -mcd 0)", [&] (size_t i)
+    {
+        float* in[2]  = { nL.data() + i, nR.data() + i };
+        float* out[2] = { oL.data(), oR.data() };
+        fmcd0.compute (block, in, out);
         return (double) (oL[0] + oR[block - 1]);
     }, 1e30 });
 

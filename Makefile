@@ -45,12 +45,14 @@ v_vec.h: ZitaReverbCmaj.dsp
 	$(FAUST) -vec -lv 0 -vs 32 -lang cpp -cn zitaFaustVec -o $@ $<
 v_48.h: ZitaReverbCmaj48.dsp
 	$(FAUST) -lang cpp -cn zitaFaust48 -o $@ $<
+v_mcd0.h: ZitaReverbCmaj.dsp
+	$(FAUST) -lang cpp -mcd 0 -cn zitaFaustMcd0 -o $@ $<
 # options elected by fcautotool (see the `autotune` target)
 OCPP_OPTS ?= -lang ocpp -lsum
 v_ocpp.h: ZitaReverbCmaj.dsp
 	$(FAUST) $(OCPP_OPTS) -cn zitaOcpp -o $@ $<
 
-GEN = cpp/ZitaReverbCmaj.h cpp/ZitaReverbCmajP2.h v_scal.h v_vec.h v_48.h v_ocpp.h
+GEN = cpp/ZitaReverbCmaj.h cpp/ZitaReverbCmajP2.h v_scal.h v_vec.h v_48.h v_mcd0.h v_ocpp.h
 
 bench_all: bench_all.cpp bench_common.h $(GEN)
 	$(CXX) $(CXXFLAGS) $(ARCHFLAG) -o $@ $<
@@ -102,5 +104,5 @@ cmaj-jit: upstream/ZitaReverb.cmajorpatch
 	        ((v[2]-v[1])-(v[4]-v[3]))/48e6*1e9}'
 
 clean:
-	rm -rf bench_all bench_cmaj bench_faust bench_jit bench_ocpp cpp v_scal.h v_vec.h v_48.h v_ocpp.h \
+	rm -rf bench_all bench_cmaj bench_faust bench_jit bench_ocpp cpp v_scal.h v_vec.h v_48.h v_mcd0.h v_ocpp.h \
 	       ir_cmaj.raw ir_faust.raw upstream upstream-p2 *.dSYM

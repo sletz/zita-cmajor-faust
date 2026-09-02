@@ -112,7 +112,7 @@ footer{margin-top:64px;padding-top:22px;border-top:1px solid var(--rule);
      in Faust, then both measured side by side inside one binary on an Apple M5 &mdash;
      with the Faust compilation options elected by <code>fcautotool</code>.</p>
   <div class="headline">
-    <div class="big">3.27&times;<small>Faust &rarr; C++ against Cmajor &rarr; C++, once the options are elected</small></div>
+    <div class="big">3.40&times;<small>Faust &rarr; C++ against Cmajor &rarr; C++, once the options are elected</small></div>
     <div class="big">-135 dB<small>gap between the two impulse responses</small></div>
     <div class="big">0.055 %<small>of one core at 48 kHz for the Faust build</small></div>
   </div>
@@ -216,21 +216,23 @@ faust first non-zero points : 0.75        0.14255273   0.14255273 ...
   <div class="scroller">
   <div class="chart">
     <div class="row"><span class="lbl">Cmajor &rarr; C++<br><em>power-of-two predelay</em></span>
-      <span class="track"><span class="bar c" style="width:94.8%"></span></span><span class="val">37.92</span></div>
+      <span class="track"><span class="bar c" style="width:98.7%"></span></span><span class="val">39.48</span></div>
     <div class="row"><span class="lbl">Cmajor &rarr; C++<br><em>cmaj generate --target=cpp</em></span>
-      <span class="track"><span class="bar c" style="width:93.6%"></span></span><span class="val">37.44</span></div>
+      <span class="track"><span class="bar c" style="width:98.3%"></span></span><span class="val">39.30</span></div>
     <div class="row"><span class="lbl">Faust &rarr; C++<br><em>-lang cpp -vec -lv 0 -vs 32</em></span>
-      <span class="track"><span class="bar f" style="width:63.4%"></span></span><span class="val">25.34</span></div>
+      <span class="track"><span class="bar f" style="width:65.1%"></span></span><span class="val">26.02</span></div>
     <div class="row"><span class="lbl">Faust &rarr; C++<br><em>-lang cpp, default settings</em></span>
-      <span class="track"><span class="bar f" style="width:59.5%"></span></span><span class="val">23.79</span></div>
+      <span class="track"><span class="bar f" style="width:61.5%"></span></span><span class="val">24.59</span></div>
     <div class="row"><span class="lbl">Cmajor &rarr; LLVM JIT<br><em>native engine, -O4</em></span>
       <span class="track"><span class="bar cj" style="width:56.3%"></span></span><span class="val">~22.5</span></div>
+    <div class="row"><span class="lbl">Faust &rarr; C++<br><em>-lang cpp, rate fixed at 48 kHz</em></span>
+      <span class="track"><span class="bar f" style="width:54.5%"></span></span><span class="val">21.81</span></div>
     <div class="row"><span class="lbl">Faust &rarr; LLVM JIT<br><em>libfaust</em></span>
       <span class="track"><span class="bar j" style="width:52.7%"></span></span><span class="val">21.08</span></div>
-    <div class="row"><span class="lbl">Faust &rarr; C++<br><em>-lang cpp, rate fixed at 48 kHz</em></span>
-      <span class="track"><span class="bar f" style="width:52.6%"></span></span><span class="val">21.02</span></div>
+    <div class="row"><span class="lbl">Faust &rarr; C++<br><em>-lang cpp -mcd 0</em></span>
+      <span class="track"><span class="bar f" style="width:47.5%"></span></span><span class="val">19.01</span></div>
     <div class="row"><span class="lbl">Faust &rarr; C++<br><em>-lang ocpp -lsum &nbsp;&middot; elected</em></span>
-      <span class="track"><span class="bar f" style="width:28.6%"></span></span><span class="val">11.43</span></div>
+      <span class="track"><span class="bar f" style="width:28.9%"></span></span><span class="val">11.57</span></div>
   </div>
   </div>
   <div class="legend">
@@ -245,14 +247,15 @@ faust first non-zero points : 0.75        0.14255273   0.14255273 ...
   <table>
     <thead><tr><th>Implementation</th><th>ns / frame</th><th>% of one core</th><th>&times; realtime</th><th>Ratio</th></tr></thead>
     <tbody>
-      <tr><td><span class="tag c">Cmajor</span> C++, power-of-two predelay</td><td>37.92</td><td>0.182</td><td>549</td><td>0.99</td></tr>
-      <tr><td><span class="tag c">Cmajor</span> generated C++</td><td>37.44</td><td>0.180</td><td>556</td><td>1.00</td></tr>
-      <tr><td><span class="tag f">Faust</span> <code>-lang cpp -vec</code></td><td>25.34</td><td>0.122</td><td>822</td><td>1.48</td></tr>
-      <tr><td><span class="tag f">Faust</span> <code>-lang cpp</code></td><td>23.79</td><td>0.114</td><td>876</td><td>1.57</td></tr>
-      <tr><td><span class="tag c">Cmajor</span> native LLVM JIT</td><td>~ 22.5</td><td>~ 0.108</td><td>~ 925</td><td>~ 1.66</td></tr>
-      <tr><td><span class="tag f">Faust</span> LLVM JIT</td><td>21.08</td><td>0.101</td><td>974</td><td>1.78</td></tr>
-      <tr><td><span class="tag f">Faust</span> <code>-lang cpp</code>, fixed rate</td><td>21.02</td><td>0.101</td><td>991</td><td>1.78</td></tr>
-      <tr class="hl"><td><span class="tag f">Faust</span> <code>-lang ocpp -lsum</code></td><td>11.43</td><td>0.055</td><td>1822</td><td>3.27</td></tr>
+      <tr><td><span class="tag c">Cmajor</span> C++, power-of-two predelay</td><td>39.48</td><td>0.189</td><td>528</td><td>1.00</td></tr>
+      <tr><td><span class="tag c">Cmajor</span> generated C++</td><td>39.30</td><td>0.189</td><td>530</td><td>1.00</td></tr>
+      <tr><td><span class="tag f">Faust</span> <code>-lang cpp -vec</code></td><td>26.02</td><td>0.125</td><td>801</td><td>1.51</td></tr>
+      <tr><td><span class="tag f">Faust</span> <code>-lang cpp</code></td><td>24.59</td><td>0.118</td><td>847</td><td>1.60</td></tr>
+      <tr><td><span class="tag c">Cmajor</span> native LLVM JIT</td><td>~ 22.5</td><td>~ 0.108</td><td>~ 925</td><td>~ 1.75</td></tr>
+      <tr><td><span class="tag f">Faust</span> <code>-lang cpp</code>, fixed rate</td><td>21.81</td><td>0.105</td><td>955</td><td>1.80</td></tr>
+      <tr><td><span class="tag f">Faust</span> LLVM JIT</td><td>21.08</td><td>0.101</td><td>974</td><td>1.86</td></tr>
+      <tr><td><span class="tag f">Faust</span> <code>-lang cpp -mcd 0</code></td><td>19.01</td><td>0.091</td><td>1096</td><td>2.07</td></tr>
+      <tr class="hl"><td><span class="tag f">Faust</span> <code>-lang ocpp -lsum</code></td><td>11.57</td><td>0.056</td><td>1800</td><td>3.40</td></tr>
     </tbody>
   </table>
   </div>
@@ -261,9 +264,10 @@ faust first non-zero points : 0.75        0.14255273   0.14255273 ...
   <code>cmaj render</code>) and is worth about &plusmn;10 %.</figcaption>
 
   <div class="col"><p>At the settings shipped with the patch (EQ gains at 0 dB), Cmajor
-  short-circuits both equaliser sections and drops to 33.8 ns; Faust, which always computes them,
-  does not move. The ratios become 1.42&times; for <code>-lang cpp</code> and 2.99&times; for the
-  elected build. Block size changes nothing, from 32 to 1,024 frames.</p></div>
+  short-circuits both equaliser sections and drops to 35.4 ns; Faust, which always computes them,
+  does not move. The ratios become 1.43&times; for <code>-lang cpp</code>, 1.85&times; with
+  <code>-mcd 0</code> and 3.05&times; for the elected build. Block size changes nothing, from 32
+  to 1,024 frames.</p></div>
 </section>
 
 <section>
@@ -279,13 +283,17 @@ faust first non-zero points : 0.75        0.14255273   0.14255273 ...
   cppmcd0   19.4140 ns  (-lang cpp -mcd 0)
   cppvec    21.1010 ns  (-lang cpp -vec)
   cpp       23.2110 ns  (-lang cpp)</code></pre>
-  <div class="col"><p>In the A/B harness the two steps are worth: <strong>23.8 ns</strong> for
-  <code>-lang cpp</code> &rarr; <strong>16.4 ns</strong> for <code>-lang ocpp</code> alone &rarr;
-  <strong>11.4 ns</strong> with <code>-lsum</code>. Picking the backend weighs more here than
-  everything else in the comparison put together.</p></div>
+  <div class="col"><p>Two candidates deserve a second look. <code>-mcd 0</code> stays on the
+  default <code>cpp</code> backend and merely forces every delay, however short, into a ring buffer
+  instead of the copy-shift lines Faust emits below the <code>-mcd</code> threshold: same 1.39 MB
+  of state, <strong>24.6 ns &rarr; 19.0 ns</strong>. Going further means changing backend &mdash;
+  <strong>16.4 ns</strong> for <code>-lang ocpp</code> alone, <strong>11.6 ns</strong> with
+  <code>-lsum</code>. Picking the backend weighs more here than everything else in the comparison
+  put together.</p></div>
   <p class="note"><code>-lsum</code> is marked experimental in <code>faust -h</code>, so its output
   was re-checked against the Cmajor reference: -135.1 dB with the equalisers neutral, -86.3 dB with
-  them active &mdash; exactly the figures of the default backend.</p>
+  them active &mdash; exactly the figures of the default backend. <code>-mcd 0</code> was checked
+  the same way and lands at -135.0 dB.</p>
 </section>
 
 <section>

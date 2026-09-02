@@ -5,6 +5,7 @@ cpp/
 v_scal.h
 v_vec.h
 v_48.h
+v_mcd0.h
 v_ocpp.h
 bench_all
 bench_cmaj
