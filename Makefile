@@ -87,7 +87,7 @@ autotune:
 	FCBENCH_ARCH_FLAGS="$(ARCHFLAG)" fcautotool ZitaReverbCmaj.dsp
 
 jit: bench_jit
-	-@./bench_jit 6 -6   # libfaust aborts in its teardown after printing; harmless
+	@./bench_jit 6 -6
 
 # Cmajor's native LLVM engine: slope of 'cmaj render' minus that of a
 # passthrough patch, to subtract start-up and WAV encoding. +/- 10%.

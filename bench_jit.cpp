@@ -77,5 +77,10 @@ int main (int argc, char** argv)
     printf ("Faust -> LLVM JIT (libfaust)         %7.2f ns/frame  %6.3f %% CPU\n", bestJ, bestJ*kSR*1e-9*100);
     printf ("Faust -> C++ scalar (meme binaire)   %7.2f ns/frame  %6.3f %% CPU\n", bestC, bestC*kSR*1e-9*100);
     if (sink == 1e300) printf("!");
+
+    // release the JIT instance and its factory before libfaust's own globals
+    // are torn down at exit, which otherwise aborts on a dead recursive_mutex
+    delete jit;
+    deleteDSPFactory (factory);
     return 0;
 }
