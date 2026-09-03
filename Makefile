@@ -91,6 +91,8 @@ jit: bench_jit
 
 # Cmajor's native LLVM engine: slope of 'cmaj render' minus that of a
 # passthrough patch, to subtract start-up and WAV encoding. +/- 10%.
+# LC_ALL=C: a comma decimal separator from time(1)/awk breaks the arithmetic
+cmaj-jit: export LC_ALL = C
 cmaj-jit: upstream/ZitaReverb.cmajorpatch
 	@for p in upstream/ZitaReverb.cmajorpatch Null.cmajorpatch; do \
 	  for L in 12000000 60000000; do \
@@ -98,6 +100,7 @@ cmaj-jit: upstream/ZitaReverb.cmajorpatch
 	      t=$$( { /usr/bin/time -p $(CMAJ) render -O4 --engine=llvm --rate=48000 \
 	              --blockSize=512 --length=$$L --output=/dev/null $$p ; } 2>&1 \
 	            | awk '/^real/{print $$2}' ); \
+	      [ -n "$$t" ] || { echo "cmaj render failed for $$p" >&2; exit 1; }; \
 	      m=$$(python3 -c "print(min($$m,$$t))"); done; \
 	    echo "$$p $$L $$m"; done; done | \
 	  awk '{v[NR]=$$3} END {printf "Cmajor LLVM JIT: %.2f ns/frame\n", \
