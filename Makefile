@@ -1,12 +1,6 @@
 # Zita Reverb: Cmajor-generated C++ vs Faust-generated C++
 #
-#   make            fetch the upstream patch, generate both C++ versions, build
-#   make run        the interleaved A/B benchmark (the headline numbers)
-#   make check      compare the two impulse responses (port fidelity)
-#   make jit        add the libfaust LLVM JIT data point (needs llvm-config)
-#   make cmaj-jit   estimate the cost of Cmajor's own LLVM engine
-#   make autotune   re-elect the best faust options with fcautotool
-#   make clean
+#   make help       list the available targets
 
 CXX      ?= clang++
 CXXFLAGS ?= -std=c++17 -O3 -I/usr/local/include
@@ -15,8 +9,16 @@ FAUST    ?= faust
 CMAJ     ?= cmaj
 RAW       = https://raw.githubusercontent.com/cmajor-lang/cmajor/main/examples/patches/ZitaReverb
 
-.PHONY: all run check jit cmaj-jit autotune clean
-all: bench_all
+.PHONY: help all run check jit cmaj-jit autotune clean
+.DEFAULT_GOAL := all
+
+# self-documenting: every '## ' comment on a target below becomes a help line
+help:
+	@echo 'Zita Reverb: Cmajor-generated C++ vs Faust-generated C++'
+	@echo
+	@awk -F ':.*## ' '/^[a-z][a-z-]*:.*## /{printf "  make %-9s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
+
+all: bench_all ## fetch the upstream patch, generate both C++ versions, build
 
 # ---- upstream Cmajor sources (not vendored: dual GPLv3 / commercial) --------
 upstream/ZitaReverb.cmajorpatch:
@@ -69,11 +71,11 @@ bench_jit: bench_jit.cpp bench_common.h v_scal.h
 	  -Wl,-rpath,$(shell llvm-config --libdir) -lz -lncurses -framework CoreFoundation
 
 # ---- targets ---------------------------------------------------------------
-run: bench_all
+run: bench_all ## the interleaved A/B benchmark (the headline numbers)
 	@./bench_all 6 -6 512      # EQ active on both sides: same work compared
 	@./bench_all 0 0 512       # shipped defaults: Cmajor short-circuits its EQs
 
-check: bench_cmaj bench_faust
+check: bench_cmaj bench_faust ## compare the two impulse responses (port fidelity)
 	./bench_cmaj dump 0 0 96000
 	./bench_faust dump 0 0 96000
 	@python3 -c "import numpy as np; \
@@ -83,17 +85,17 @@ r=np.sqrt(((a-b)**2).mean())/np.sqrt((a**2).mean()); \
 print('relative error %.3e (%.1f dB)'%(r,20*np.log10(r)))"
 
 # re-elect the best faust options for this DSP (~30 s)
-autotune:
+autotune: ## re-elect the best faust options with fcautotool (~30 s)
 	FCBENCH_ARCH_FLAGS="$(ARCHFLAG)" fcautotool ZitaReverbCmaj.dsp
 
-jit: bench_jit
+jit: bench_jit ## add the libfaust LLVM JIT data point (needs llvm-config)
 	@./bench_jit 6 -6
 
 # Cmajor's native LLVM engine: slope of 'cmaj render' minus that of a
 # passthrough patch, to subtract start-up and WAV encoding. +/- 10%.
 # LC_ALL=C: a comma decimal separator from time(1)/awk breaks the arithmetic
 cmaj-jit: export LC_ALL = C
-cmaj-jit: upstream/ZitaReverb.cmajorpatch
+cmaj-jit: upstream/ZitaReverb.cmajorpatch ## estimate the cost of Cmajor's own LLVM engine
 	@for p in upstream/ZitaReverb.cmajorpatch Null.cmajorpatch; do \
 	  for L in 12000000 60000000; do \
 	    m=99; for r in 1 2 3 4 5 6 7; do \
@@ -106,6 +108,6 @@ cmaj-jit: upstream/ZitaReverb.cmajorpatch
 	  awk '{v[NR]=$$3} END {printf "Cmajor LLVM JIT: %.2f ns/frame\n", \
 	        ((v[2]-v[1])-(v[4]-v[3]))/48e6*1e9}'
 
-clean:
+clean: ## remove every generated file
 	rm -rf bench_all bench_cmaj bench_faust bench_jit bench_ocpp cpp v_scal.h v_vec.h v_48.h v_mcd0.h v_ocpp.h \
 	       ir_cmaj.raw ir_faust.raw upstream upstream-p2 *.dSYM
