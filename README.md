@@ -38,23 +38,33 @@ None of these change the steady state; they change what happens while a knob mov
 
 Apple M5, `clang++ -std=c++17 -O3 -mcpu=apple-m4` on both sides, 48 kHz, block of
 512, single precision. EQ gains set to +6/-6 dB so that both engines actually run
-the whole chain.
+the whole chain. Run of 2026-09-18 (Faust 2.89.0, Cmajor 1.0.3177, Apple clang
+21; the upstream patch re-fetched that day); the 2026-09-18 morning run and the
+original one are in `results.txt`.
 
 | Implementation                              | ns/frame | % of one core | ratio |
 |---------------------------------------------|---------:|--------------:|------:|
-| Cmajor -> C++, power-of-two predelay         |    39.5  |         0.189 |  1.00 |
-| Cmajor -> C++ (`cmaj generate`)              |    39.3  |         0.189 |  1.00 |
-| Faust -> C++ `-lang cpp -vec -lv 0 -vs 32`   |    26.0  |         0.125 |  1.51 |
-| Faust -> C++ `-lang cpp` (default)           |    24.6  |         0.118 |  1.60 |
-| Cmajor -> native LLVM JIT (-O4)              |   ~ 22.5 |       ~ 0.108 | ~1.75 |
-| Faust -> C++ `-lang cpp`, SR fixed at 48 kHz |    21.8  |         0.105 |  1.80 |
-| Faust -> LLVM JIT (libfaust)                 |    21.1  |         0.101 |  1.86 |
-| Faust -> C++ `-lang cpp -mcd 0`              |    19.0  |         0.091 |  2.07 |
-| Faust -> LLVM JIT `-mcd 0`                   |   16.72  |         0.080 |  2.35 |
-| **Faust -> C++ `-lang ocpp -lsum`**          | **11.6** |     **0.056** |**3.40**|
+| Cmajor -> C++, power-of-two predelay         |    37.7  |         0.181 |  1.00 |
+| Cmajor -> C++ (`cmaj generate`)              |    37.5  |         0.180 |  1.00 |
+| Faust -> C++ `-lang cpp -vec -lv 0 -vs 32`   |    25.7  |         0.123 |  1.46 |
+| Faust -> C++ `-lang cpp` (default)           |    23.6  |         0.113 |  1.59 |
+| Faust -> C++ `-lang cpp`, SR fixed at 48 kHz |    23.6  |         0.113 |  1.59 |
+| Faust -> LLVM JIT (libfaust)                 |    20.6  |         0.099 |  1.82 |
+| Cmajor -> native LLVM JIT (-O4)              |  ~ 19.8  |       ~ 0.095 | ~1.9  |
+| Faust -> C++ `-lang cpp -mcd 0`              |    16.0  |         0.077 |  2.34 |
+| Faust -> LLVM JIT `-mcd 0`                   |    15.5  |         0.074 |  2.42 |
+| **Faust -> C++ `-lang ocpp -lsum`**          | **11.2** |     **0.054** |**3.34**|
 
-The LLVM `-mcd 0` row comes from the 2026-09-18 run detailed below; its
-ratio uses the original 39.3 ns/frame Cmajor C++ baseline.
+The C++ rows are one `make run`; the two libfaust rows are the `make jit` run
+detailed below, and the Cmajor JIT row is the median of three `make cmaj-jit`
+estimates (18.1, 19.8, 28.5 ns/frame: that method is far noisier than the
+in-binary numbers, see Method). Ratios are against the 37.5 ns/frame Cmajor C++
+baseline of the same run.
+
+Against the original run (`results.txt`), the Cmajor C++ side gained 5 % (39.3
+to 37.5), the Faust default 4 % (24.6 to 23.6), `-mcd 0` 16 % (19.0 to 16.0),
+and the fixed-rate variant lost its edge: it now measures the same 23.6 ns as
+the generic one, where it was 21.8 against 24.6.
 
 The last row is the option set elected by `fcautotool` (`make autotune`), which
 races the supported candidate flag sets against each other and gates the winner on
@@ -73,9 +83,9 @@ reproducing the reference impulse response. Its own verdict on this DSP:
 Two of those candidates are worth keeping in mind on their own. `-mcd 0` stays on
 the default `cpp` backend and only forces every delay, however short, into a ring
 buffer instead of the copy-shift lines Faust emits below the `-mcd` threshold: it
-costs nothing in memory (identical 1.39 MB state) and takes the default 24.6 ns
-down to 19.0. Going further means changing backend: `-lang ocpp` alone measures
-16.4 ns here, and `-lang ocpp -lsum` 11.6 ns.
+costs nothing in memory (identical 1.39 MB state) and takes the default 23.6 ns
+down to 16.0. Going further means changing backend: `-lang ocpp` alone measured
+16.4 ns in the original run, and `-lang ocpp -lsum` 11.2 ns today.
 
 `-lsum` is flagged experimental in `faust -h`; its output was checked against the
 reference all the same (-135.1 dB with the EQs bypassed, -86.3 dB with them
@@ -83,8 +93,8 @@ active, i.e. the same figures as the default backend). `-mcd 0` was checked the
 same way and lands at -135.0 dB, bit-comparable to the default build.
 
 At the patch's shipped defaults (EQ gains at 0 dB) Cmajor short-circuits both EQ
-processors and drops to 35.4 ns; Faust stays put, so the ratios become 1.43x
-(`-lang cpp`), 1.85x (`-mcd 0`) and 3.05x (`-lang ocpp -lsum`). The ratio is
+processors and drops to 34.1 ns; Faust stays put, so the ratios become 1.42x
+(`-lang cpp`), 2.12x (`-mcd 0`) and 3.00x (`-lang ocpp -lsum`). The ratio is
 stable from 32 to 1024 frames per block.
 
 State footprint: 1.21 MB for Cmajor, 1.39 MB for the generic Faust port, 0.45 MB
@@ -92,21 +102,23 @@ for the fixed-rate variant.
 
 ### LLVM JIT with `-mcd 0`
 
-A fresh `make jit` run on 2026-09-18 measured the following three variants
-interleaved in the same process, at 48 kHz, 512 frames per block, single
-precision and EQ gains of +6/-6 dB. The `-mcd 0` result is also included in the main table above; the other
-measurements here are from this new run rather than the original baseline.
+The `make jit` run of 2026-09-18 (afternoon) measured the following three
+variants interleaved in the same process, at 48 kHz, 512 frames per block,
+single precision and EQ gains of +6/-6 dB. The two JIT results are the ones in
+the main table above.
 
 | Implementation                       | ns/frame | % of one core |
 |--------------------------------------|---------:|--------------:|
-| Faust -> LLVM JIT (libfaust, default) |    21.60 |         0.104 |
-| Faust -> LLVM JIT `-mcd 0`            |    16.72 |         0.080 |
-| Faust -> C++ scalar (same binary)     |    25.04 |         0.120 |
+| Faust -> LLVM JIT (libfaust, default) |    20.59 |         0.099 |
+| Faust -> LLVM JIT `-mcd 0`            |    15.50 |         0.074 |
+| Faust -> C++ scalar (same binary)     |    23.47 |         0.113 |
 
-`-mcd 0` reduces LLVM JIT processing time by **22.6%** in this run
-(**1.29x** speedup over the default JIT). Comparing 96000-frame stereo impulse
+`-mcd 0` reduces LLVM JIT processing time by **24.7%** in this run
+(**1.33x** speedup over the default JIT; the morning's run gave 22.6% and
+1.29x, from 21.60 to 16.72 ns). Comparing 96000-frame stereo impulse
 and deterministic-noise responses, with EQ gains at both 0/0 and +6/-6 dB,
-gave a maximum relative RMS error of **2.21e-7** against the default JIT.
+gave a maximum relative RMS error of **2.21e-7** against the default JIT
+(morning run).
 
 ## Where the gap comes from
 
@@ -117,8 +129,9 @@ the translation of the language's `loop`/`advance()` coroutines. The C++ compile
 cannot fuse that into a single loop. Faust emits one fused loop over flat state
 arrays, with slider-dependent coefficients hoisted out of it.
 
-This is not a verdict on the Cmajor language: its native LLVM engine runs at about
-22.5 ns/frame, level with the best Faust figure. The measured gap is the C++
+This is not a verdict on the Cmajor language: its native LLVM engine runs at
+about 20 ns/frame (18.1, 19.8 and 28.5 in three estimates of 2026-09-18, 22.5
+originally), level with the Faust LLVM JIT. The measured gap is the C++
 *code generator*, not the Cmajor compiler.
 
 Side finding: the patch's predelay buffer is 19200 words, not a power of two, so
@@ -142,8 +155,9 @@ this LLVM measurement as well as in the C++ variant above.
 
 `make cmaj-jit` estimates Cmajor's native engine differently — the slope of
 `cmaj render` wall time against render length, minus the same slope for a
-passthrough patch, to subtract start-up and WAV encoding. That figure is worth
-about +/-10%, unlike the in-binary numbers.
+passthrough patch, to subtract start-up and WAV encoding. That figure is far
+noisier than the in-binary numbers: three consecutive estimates on 2026-09-18
+gave 28.5, 18.1 and 19.8 ns/frame. Run it several times and keep the median.
 
 ## Targets
 

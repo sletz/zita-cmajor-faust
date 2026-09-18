@@ -16,3 +16,33 @@ Faust  -> C++  (-vec -lv 0 -vs 32)     26.06 ns/frame   0.125 % CPU     799 x RT
 Faust  -> C++  (scalar, SR fixe 48k)   21.84 ns/frame   0.105 % CPU     954 x RT   1.62x
 Faust  -> C++  (-lang cpp -mcd 0)      19.10 ns/frame   0.092 % CPU    1091 x RT   1.85x
 Faust  -> C++  (-lang ocpp, elu)       11.60 ns/frame   0.056 % CPU    1797 x RT   3.05x
+
+==== 2026-09-18 afternoon: Faust 2.89.0 (fbd198a27), Cmajor 1.0.3177, Apple clang 21, Apple M5 ====
+
+--- block = 512 frames, SR = 48 kHz, EQ gains = +6.0 / -6.0 dB, 12 rounds of 10 s ---
+Cmajor -> C++  (cmaj generate)         37.51 ns/frame   0.180 % CPU     555 x RT   ref 1.00x
+Cmajor -> C++  (predelai en 2^n)       37.66 ns/frame   0.181 % CPU     553 x RT   1.00x
+Faust  -> C++  (scalar)                23.63 ns/frame   0.113 % CPU     881 x RT   1.59x
+Faust  -> C++  (-vec -lv 0 -vs 32)     25.71 ns/frame   0.123 % CPU     810 x RT   1.46x
+Faust  -> C++  (scalar, SR fixe 48k)   23.62 ns/frame   0.113 % CPU     882 x RT   1.59x
+Faust  -> C++  (-lang cpp -mcd 0)      16.02 ns/frame   0.077 % CPU    1300 x RT   2.34x
+Faust  -> C++  (-lang ocpp, elu)       11.22 ns/frame   0.054 % CPU    1856 x RT   3.34x
+
+--- block = 512 frames, SR = 48 kHz, EQ gains = +0.0 / +0.0 dB, 12 rounds of 10 s ---
+Cmajor -> C++  (cmaj generate)         34.06 ns/frame   0.163 % CPU     612 x RT   ref 1.00x
+Cmajor -> C++  (predelai en 2^n)       33.38 ns/frame   0.160 % CPU     624 x RT   1.02x
+Faust  -> C++  (scalar)                23.98 ns/frame   0.115 % CPU     869 x RT   1.42x
+Faust  -> C++  (-vec -lv 0 -vs 32)     26.00 ns/frame   0.125 % CPU     801 x RT   1.31x
+Faust  -> C++  (scalar, SR fixe 48k)   23.72 ns/frame   0.114 % CPU     878 x RT   1.44x
+Faust  -> C++  (-lang cpp -mcd 0)      16.10 ns/frame   0.077 % CPU    1294 x RT   2.12x
+Faust  -> C++  (-lang ocpp, elu)       11.36 ns/frame   0.055 % CPU    1833 x RT   3.00x
+
+--- make jit ---
+Faust -> LLVM JIT (libfaust)         20.59 ns/frame   0.099 % CPU
+Faust -> LLVM JIT (-mcd 0)           15.50 ns/frame   0.074 % CPU
+Faust -> C++ scalar (meme binaire)   23.47 ns/frame   0.113 % CPU
+
+--- make cmaj-jit, three runs ---
+Cmajor LLVM JIT: 28.54 ns/frame
+Cmajor LLVM JIT: 18.12 ns/frame
+Cmajor LLVM JIT: 19.79 ns/frame
