@@ -50,7 +50,11 @@ the whole chain.
 | Faust -> C++ `-lang cpp`, SR fixed at 48 kHz |    21.8  |         0.105 |  1.80 |
 | Faust -> LLVM JIT (libfaust)                 |    21.1  |         0.101 |  1.86 |
 | Faust -> C++ `-lang cpp -mcd 0`              |    19.0  |         0.091 |  2.07 |
+| Faust -> LLVM JIT `-mcd 0`                   |   16.72  |         0.080 |  2.35 |
 | **Faust -> C++ `-lang ocpp -lsum`**          | **11.6** |     **0.056** |**3.40**|
+
+The LLVM `-mcd 0` row comes from the 2026-09-18 run detailed below; its
+ratio uses the original 39.3 ns/frame Cmajor C++ baseline.
 
 The last row is the option set elected by `fcautotool` (`make autotune`), which
 races the supported candidate flag sets against each other and gates the winner on
@@ -86,6 +90,24 @@ stable from 32 to 1024 frames per block.
 State footprint: 1.21 MB for Cmajor, 1.39 MB for the generic Faust port, 0.45 MB
 for the fixed-rate variant.
 
+### LLVM JIT with `-mcd 0`
+
+A fresh `make jit` run on 2026-09-18 measured the following three variants
+interleaved in the same process, at 48 kHz, 512 frames per block, single
+precision and EQ gains of +6/-6 dB. The `-mcd 0` result is also included in the main table above; the other
+measurements here are from this new run rather than the original baseline.
+
+| Implementation                       | ns/frame | % of one core |
+|--------------------------------------|---------:|--------------:|
+| Faust -> LLVM JIT (libfaust, default) |    21.60 |         0.104 |
+| Faust -> LLVM JIT `-mcd 0`            |    16.72 |         0.080 |
+| Faust -> C++ scalar (same binary)     |    25.04 |         0.120 |
+
+`-mcd 0` reduces LLVM JIT processing time by **22.6%** in this run
+(**1.29x** speedup over the default JIT). Comparing 96000-frame stereo impulse
+and deterministic-noise responses, with EQ gains at both 0/0 and +6/-6 dB,
+gave a maximum relative RMS error of **2.21e-7** against the default JIT.
+
 ## Where the gap comes from
 
 Cmajor's **C++ backend** unrolls the graph one frame at a time: the generated
@@ -111,6 +133,13 @@ drift and frequency scaling hit all of them equally; the minimum over 11 rounds 
 kept, the first round being warm-up. The thread runs at `QOS_CLASS_USER_INTERACTIVE`
 to stay on performance cores.
 
+`make jit` interleaves three variants in the same process: the default libfaust
+LLVM JIT, LLVM JIT with `-mcd 0`, and scalar C++. Both JIT factories use
+single precision and the same LLVM optimization level, inputs and parameters.
+It reports each variant separately after one warm-up round; the minimum of the
+remaining 11 rounds is kept. `-mcd 0` forces ring buffers for short delays in
+this LLVM measurement as well as in the C++ variant above.
+
 `make cmaj-jit` estimates Cmajor's native engine differently — the slope of
 `cmaj render` wall time against render length, minus the same slope for a
 passthrough patch, to subtract start-up and WAV encoding. That figure is worth
@@ -123,7 +152,7 @@ make            fetch the upstream patch, generate both C++ versions, build
 make run        the interleaved A/B benchmark
 make check      impulse-response comparison
 make autotune   re-elect the best faust options with fcautotool
-make jit        add the libfaust LLVM JIT data point (needs llvm-config)
+make jit        compare libfaust LLVM JIT default and -mcd 0 with C++ (needs llvm-config)
 make cmaj-jit   estimate Cmajor's own LLVM engine
 make clean
 ```

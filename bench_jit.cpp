@@ -1,4 +1,4 @@
-// Faust LLVM-JIT vs the same DSP compiled to C++, in one interleaved run.
+// Faust LLVM-JIT (default and -mcd 0) vs C++, in one interleaved run.
 #include "bench_common.h"
 #include <pthread.h>
 #include <map>
@@ -43,9 +43,30 @@ int main (int argc, char** argv)
     const char* args[] = { "-single" };
     auto* factory = createDSPFactoryFromFile ("ZitaReverbCmaj.dsp", 1, args, "", err, -1);
     if (! factory) { printf ("JIT error: %s\n", err.c_str()); return 1; }
+    const char* mcd0Args[] = { "-single", "-mcd", "0" };
+    auto* mcd0Factory = createDSPFactoryFromFile ("ZitaReverbCmaj.dsp", 3, mcd0Args, "", err, -1);
+    if (! mcd0Factory)
+    {
+        printf ("JIT -mcd 0 error: %s\n", err.c_str());
+        deleteDSPFactory (factory);
+        return 1;
+    }
     dsp* jit = factory->createDSPInstance();
+    dsp* jitMcd0 = mcd0Factory->createDSPInstance();
+    if (! jit || ! jitMcd0)
+    {
+        printf ("JIT instance creation failed\n");
+        delete jit;
+        delete jitMcd0;
+        deleteDSPFactory (factory);
+        deleteDSPFactory (mcd0Factory);
+        return 1;
+    }
     jit->init ((int) kSR);
     ZoneUI uij; jit->buildUserInterface (&uij); setP (uij, e1, e2);
+
+    jitMcd0->init ((int) kSR);
+    ZoneUI uim; jitMcd0->buildUserInterface (&uim); setP (uim, e1, e2);
 
     static zitaFaustScal cpp; cpp.init ((int) kSR);
     ZoneUI uic; cpp.buildUserInterface (&uic); setP (uic, e1, e2);
@@ -56,31 +77,41 @@ int main (int argc, char** argv)
     std::vector<float> nL (frames), nR (frames), oL (block), oR (block);
     for (size_t i = 0; i < frames; ++i) { nL[i] = noiseI[2*i]; nR[i] = noiseI[2*i+1]; }
 
-    double bestJ = 1e30, bestC = 1e30, sink = 0;
+    dsp* engines[] = { jit, jitMcd0, &cpp };
+    const char* labels[] = {
+        "Faust -> LLVM JIT (libfaust)",
+        "Faust -> LLVM JIT (-mcd 0)",
+        "Faust -> C++ scalar (meme binaire)"
+    };
+    double best[] = { 1e30, 1e30, 1e30 };
+    double sink = 0;
     for (int r = 0; r < rounds; ++r)
     {
-        for (int which = 0; which < 2; ++which)
+        for (int which = 0; which < 3; ++which)
         {
             auto t0 = std::chrono::steady_clock::now();
             for (size_t i = 0; i + block <= frames; i += block)
             {
                 float* in[2] = { nL.data() + i, nR.data() + i };
                 float* out[2] = { oL.data(), oR.data() };
-                if (which == 0) jit->compute (block, in, out); else cpp.compute (block, in, out);
+                engines[which]->compute (block, in, out);
                 sink += oL[0];
             }
             auto t1 = std::chrono::steady_clock::now();
             double ns = std::chrono::duration<double,std::nano> (t1-t0).count() / (double) frames;
-            if (r > 0) { if (which == 0) bestJ = std::min (bestJ, ns); else bestC = std::min (bestC, ns); }
+            if (r > 0) best[which] = std::min (best[which], ns);
         }
     }
-    printf ("Faust -> LLVM JIT (libfaust)         %7.2f ns/frame  %6.3f %% CPU\n", bestJ, bestJ*kSR*1e-9*100);
-    printf ("Faust -> C++ scalar (meme binaire)   %7.2f ns/frame  %6.3f %% CPU\n", bestC, bestC*kSR*1e-9*100);
+    for (int which = 0; which < 3; ++which)
+        printf ("%-34s %7.2f ns/frame  %6.3f %% CPU\n",
+                labels[which], best[which], best[which]*kSR*1e-9*100);
     if (sink == 1e300) printf("!");
 
     // release the JIT instance and its factory before libfaust's own globals
     // are torn down at exit, which otherwise aborts on a dead recursive_mutex
     delete jit;
+    delete jitMcd0;
     deleteDSPFactory (factory);
+    deleteDSPFactory (mcd0Factory);
     return 0;
 }

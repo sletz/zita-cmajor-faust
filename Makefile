@@ -88,7 +88,7 @@ print('relative error %.3e (%.1f dB)'%(r,20*np.log10(r)))"
 autotune: ## re-elect the best faust options with fcautotool (~30 s)
 	FCBENCH_ARCH_FLAGS="$(ARCHFLAG)" fcautotool ZitaReverbCmaj.dsp
 
-jit: bench_jit ## add the libfaust LLVM JIT data point (needs llvm-config)
+jit: bench_jit ## compare libfaust LLVM JIT default and -mcd 0 with C++ (needs llvm-config)
 	@./bench_jit 6 -6
 
 # Cmajor's native LLVM engine: slope of 'cmaj render' minus that of a
