@@ -68,17 +68,28 @@ the generic one, where it was 21.8 against 24.6.
 
 The last row is the option set elected by `fcautotool` (`make autotune`), which
 races the supported candidate flag sets against each other and gates the winner on
-reproducing the reference impulse response. Its own verdict on this DSP:
+reproducing the reference impulse response. Its verdict on this DSP, 2026-09-18
+(two runs, 39 and 42 s):
 
 ```
-  lb        10.1730 ns  (-lang ocpp -lsum)
-  fibfu     11.3210 ns  (-lang ocpp -fir -iirt -lsum -ls-fuse -ls-sched model)
-  al        14.0150 ns  (-lang ocpp -ss 8)
+  fib       11.2830 ns  (-lang ocpp -fir -iirt -lsum)
+  lb        11.3090 ns  (-lang ocpp -lsum)
+  fibfu     11.6880 ns  (-lang ocpp -fir -iirt -lsum -ls-fuse -ls-sched model)
+  fibmx     11.6920 ns  (-lang ocpp -fir -iirt -lsum -mxr -ls-fuse -ls-sched model)
+  h2        13.6020 ns  (-lang ocpp -ss 9 -ls-R 2 -ls-U 4)
   ...
-  cppmcd0   19.4140 ns  (-lang cpp -mcd 0)
-  cppvec    21.1010 ns  (-lang cpp -vec)
-  cpp       23.2110 ns  (-lang cpp)
+  df        15.3700 ns  (-lang ocpp)
+  cppmcd0   15.3960 ns  (-lang cpp -mcd 0)
+  ...
+  cpp       20.9120 ns  (-lang cpp)
+  cppvec    21.8120 ns  (-lang cpp -vec)
 ```
+
+`fib` wins both runs (11.175 and 11.283 ns) over `lb` by 0.03 to 0.1 ns, under
+1 %, which the jury's own spread covers: `-fir -iirt` (the FIR and transposed
+IIR rewrites) add nothing measurable to `-lsum` on this reverb. The benchmarked
+row keeps `-lang ocpp -lsum`, the set elected in the original run (`lb` then
+won at 10.17 ns, `fibfu` second at 11.32).
 
 Two of those candidates are worth keeping in mind on their own. `-mcd 0` stays on
 the default `cpp` backend and only forces every delay, however short, into a ring
